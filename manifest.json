@@ -1,0 +1,25 @@
+{
+  "name": "NMS Special Orders",
+  "short_name": "NMS Orders",
+  "description": "Special customer request register with local storage and refund tracking",
+  "start_url": "/nms-special-orders/",
+  "scope": "/nms-special-orders/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1a1a2e",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
