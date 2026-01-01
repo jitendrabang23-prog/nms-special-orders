@@ -1,103 +1,1263 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NMS Special Orders</title>
-    <meta name="description" content="NMS Special Orders - Customer request register with local storage and refund tracking">
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#1a1a2e">
-    <link rel="apple-touch-icon" href="icons/icon-192.png">
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #f5f5f5;
-            color: #333;
-            padding: 20px;
-        }
-        .container { max-width: 1200px; margin: 0 auto; }
-        header {
-            background: #1a1a2e;
-            color: white;
-            padding: 30px;
-            text-align: center;
-            border-radius: 8px;
-            margin-bottom: 30px;
-        }
-        h1 { font-size: 2.5em; margin-bottom: 10px; }
-        .subtitle { font-size: 0.9em; opacity: 0.9; }
-        .content {
-            background: white;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            line-height: 1.6;
-        }
-        .content h2 { margin: 20px 0 10px 0; color: #1a1a2e; }
-        .content p { margin-bottom: 15px; }
-        .highlight { background: #e8f4f8; padding: 15px; border-left: 4px solid #1a1a2e; margin: 20px 0; }
-        .code { background: #f5f5f5; padding: 10px; border-radius: 4px; font-family: monospace; color: #d63384; }
-        .button { display: inline-block; background: #1a1a2e; color: white; padding: 10px 20px; border-radius: 4px; text-decoration: none; margin: 10px 0; }
-        .button:hover { background: #0f0f1a; }
-    </style>
+<meta charset="UTF-8" />
+<title>NMS Special Order Register</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;}
+body{background:#f3f4f6;color:#111827;min-height:100vh;display:flex;flex-direction:column;}
+header{background:#111827;color:#f9fafb;padding:12px 20px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 1px 3px rgba(0,0,0,.1);}
+header h1{font-size:18px;font-weight:600;}
+header span{font-size:12px;opacity:.8;}
+main{flex:1;display:grid;grid-template-columns:360px 1fr;gap:12px;padding:12px;height:calc(100vh - 56px);}
+@media(max-width:900px){main{grid-template-columns:1fr;height:auto;}}
+.card{background:#ffffff;border-radius:10px;box-shadow:0 1px 3px rgba(15,23,42,.12);padding:12px;display:flex;flex-direction:column;overflow:hidden;}
+.card h2{font-size:14px;font-weight:600;margin-bottom:8px;color:#111827;}
+.sub{font-size:11px;color:#6b7280;margin-bottom:6px;}
+.field-row{display:flex;gap:8px;margin-bottom:6px;}
+.field{flex:1;display:flex;flex-direction:column;}
+label{font-size:11px;color:#374151;margin-bottom:2px;}
+input,textarea,select{
+border:1px solid #d1d5db;border-radius:6px;padding:6px 7px;font-size:12px;
+outline:none;background:#f9fafb;
+}
+input:focus,textarea:focus,select:focus{border-color:#2563eb;background:#ffffff;box-shadow:0 0 0 1px rgba(37,99,235,.25);}
+textarea{resize:vertical;min-height:40px;}
+.pill{display:inline-flex;align-items:center;border-radius:999px;font-size:11px;padding:2px 8px;background:#e5f0ff;color:#1d4ed8;margin-right:4px;}
+.pill-id{background:#111827;color:#f9fafb;}
+.pill-status-open{background:#fef3c7;color:#92400e;}
+.pill-status-partial{background:#e0f2fe;color:#0369a1;}
+.pill-status-done{background:#dcfce7;color:#166534;}
+.pill-status-failed{background:#fee2e2;color:#b91c1c;}
+.btn{border:none;border-radius:999px;font-size:12px;padding:6px 10px;cursor:pointer;display:inline-flex;align-items:center;gap:4px;}
+.btn-primary{background:#111827;color:#f9fafb;}
+.btn-secondary{background:#e5e7eb;color:#111827;}
+.btn-danger{background:#b91c1c;color:#fef2f2;}
+.btn-sm{font-size:11px;padding:4px 8px;}
+table{width:100%;border-collapse:collapse;font-size:12px;}
+th,td{padding:6px 6px;border-bottom:1px solid #e5e7eb;text-align:left;vertical-align:middle;}
+th{font-size:11px;color:#6b7280;background:#f9fafb;position:sticky;top:0;z-index:1;}
+tbody tr:hover{background:#f3f4ff;}
+.clickable{color:#1d4ed8;cursor:pointer;text-decoration:underline;text-decoration-color:#bfdbfe;}
+.status-badge{font-size:11px;border-radius:999px;padding:2px 7px;}
+.search-row{display:flex;gap:6px;margin-bottom:6px;align-items:center;}
+.search-row input{flex:1;}
+.chip-row{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px;}
+.tag{font-size:11px;background:#f3f4f6;color:#374151;border-radius:999px;padding:2px 8px;}
+.modal-backdrop{position:fixed;inset:0;background:rgba(15,23,42,.45);display:none;align-items:center;justify-content:center;z-index:40;}
+.modal{background:#ffffff;border-radius:12px;box-shadow:0 20px 45px rgba(15,23,42,.35);width:95%;max-width:940px;max-height:90vh;display:flex;flex-direction:column;}
+.modal-header{padding:10px 14px;border-bottom:1px solid #e5e7eb;display:flex;justify-content:space-between;align-items:center;}
+.modal-body{padding:10px 14px;overflow:auto;}
+.modal-footer{padding:8px 14px;border-top:1px solid #e5e7eb;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;}
+.item-status-buttons{display:flex;gap:4px;flex-wrap:wrap;}
+.mini-btn{border:none;border-radius:999px;font-size:10px;padding:3px 7px;cursor:pointer;}
+.mini-btn[data-act="Ordered"]{background:#e5e7eb;color:#111827;}
+.mini-btn[data-act="Informed"]{background:#bfdbfe;color:#1e40af;}
+.mini-btn[data-act="Completed"]{background:#bbf7d0;color:#166534;}
+.mini-btn[data-act="Failed"]{background:#fecaca;color:#b91c1c;}
+.mini-btn.disabled{opacity:.4;cursor:not-allowed;}
+.badge-small{font-size:10px;padding:2px 6px;border-radius:999px;background:#e5e7eb;color:#4b5563;}
+.refund-section{background:#fef3c7;border:1px solid #f59e0b;border-radius:8px;padding:10px;margin-top:10px;}
+.photo-box{border:1px dashed #d1d5db;border-radius:8px;padding:8px;margin-top:10px;display:flex;gap:8px;align-items:flex-start;}
+.photo-box img{max-width:100px;max-height:100px;border-radius:6px;object-fit:cover;border:1px solid #e5e7eb;}
+.today-box{border:1px solid #e5e7eb;border-radius:8px;padding:6px;margin-bottom:8px;background:#f9fafb;}
+.today-title{font-size:12px;font-weight:600;color:#111827;margin-bottom:4px;}
+.today-row{font-size:11px;color:#374151;display:flex;justify-content:space-between;gap:6px;margin-bottom:2px;cursor:pointer;}
+.today-left{flex:1;}
+.today-right{text-align:right;white-space:nowrap;}
+.today-pill{display:inline-block;font-size:10px;padding:1px 6px;border-radius:999px;background:#e5e7eb;color:#4b5563;margin-right:4px;}
+</style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>NMS Special Orders</h1>
-            <p class="subtitle">Specific customer request register • Local storage • Refund tracking</p>
-        </header>
-        
-        <div class="content">
-            <h2>📱 GitHub Pages Setup Complete!</h2>
-            <p>Your NMS Special Orders PWA is now deployed on GitHub Pages.</p>
-            
-            <div class="highlight">
-                <strong>⚠️ Note:</strong> The application files are currently being set up. To access the full application:
-            </div>
-            
-            <h2>🚀 Quick Start Options:</h2>
-            
-            <h3>Option 1: Use Local Files (Recommended for Development)</h3>
-            <p>Open your local version at:</p>
-            <p><span class="code">C:\Users\OS\Desktop\NMSSpecialOrdersApp\index.html</span></p>
-            <p>This version has all the features working.</p>
-            
-            <h3>Option 2: Push Complete Files to GitHub</h3>
-            <p>To make the GitHub Pages version work with all features, follow these steps:</p>
-            <ol>
-                <li>Copy your project folder <span class="code">C:\Users\OS\Desktop\NMSSpecialOrdersApp\</span></li>
-                <li>Push all files to: <span class="code">https://github.com/jitendrabang23-prog/nms-special-orders</span></li>
-                <li>Files needed: <code>index.html</code>, <code>app.js</code>, <code>manifest.json</code>, <code>service-worker.js</code>, <code>icons/</code></li>
-                <li>Site will be live at: <span class="code">https://jitendrabang23-prog.github.io/nms-special-orders/</span></li>
-            </ol>
-            
-            <h2>✨ Features</h2>
-            <ul style="margin-left: 20px;">
-                <li>✅ Special order management</li>
-                <li>✅ Customer request tracking</li>
-                <li>✅ Local storage (data persists)</li>
-                <li>✅ Refund tracking</li>
-                <li>✅ Works offline (PWA)</li>
-                <li>✅ Mobile responsive</li>
-                <li>✅ Export to CSV</li>
-            </ul>
-            
-            <div class="highlight">
-                <strong>📲 Mobile App:</strong> After full setup, open this link on your phone:
-                <br><span class="code">https://jitendrabang23-prog.github.io/nms-special-orders/</span>
-                <br>Then "Add to Home Screen" to install as app
-            </div>
-        </div>
+<header>
+<h1>NMS Special Orders</h1>
+<span>Specific customer request register • Local storage • Refund tracking</span>
+</header>
+<main>
+<section class="card" id="entryCard">
+<h2>New specific order</h2>
+<p class="sub">Enter customer & item details when stock is not available and order is taken specially.</p>
+<div class="field-row">
+  <div class="field">
+    <label>Order ID</label>
+    <div class="pill pill-id" id="orderIdLabel">Auto</div>
+  </div>
+  <div class="field">
+    <label>Order date</label>
+    <input type="date" id="orderDate">
+  </div>
+</div>
+<div class="field-row">
+  <div class="field">
+    <label>Customer name</label>
+    <input type="text" id="custName" placeholder="Harsh">
+  </div>
+  <div class="field">
+    <label>Mobile number</label>
+    <input type="tel" id="custMobile" placeholder="10-digit number">
+  </div>
+</div>
+<div class="field">
+  <label>Address / landmark</label>
+  <textarea id="custAddress" placeholder="Near XYZ hospital, Nagaur"></textarea>
+</div>
+<div class="field-row" style="margin-top:6px;">
+  <div class="field">
+    <label>Advance amount (₹)</label>
+    <input type="number" id="advance" min="0" step="1" placeholder="Only advance, no total">
+  </div>
+  <div class="field">
+    <label>Notes (optional)</label>
+    <input type="text" id="notes" placeholder="Any special info for this order">
+  </div>
+</div>
+
+<hr style="margin:10px 0;border:none;border-top:1px dashed #e5e7eb;">
+
+<h2>Items for this order</h2>
+<p class="sub">You can add multiple items for the same customer, each tracked separately.</p>
+<div class="field-row">
+  <div class="field">
+    <label>Item / cream name</label>
+    <input type="text" id="itemName" placeholder="XYZ cream 20gm">
+  </div>
+</div>
+<div class="field-row">
+  <div class="field">
+    <label>Quantity</label>
+    <input type="number" id="itemQty" min="1" step="1" value="1">
+  </div>
+  <div class="field">
+    <label>Unit</label>
+    <select id="itemQtyUnit">
+      <option value="Strip">Strip</option>
+      <option value="Pcs">Pcs</option>
+    </select>
+  </div>
+</div>
+<div class="field-row">
+  <div class="field">
+    <label>Company name</label>
+    <input type="text" id="itemCompany" placeholder="Company / brand">
+  </div>
+  <div class="field">
+    <label>Supplier name</label>
+    <input type="text" id="itemSupplier" placeholder="Wholesaler / stockist" list="supplierList">
+    <datalist id="supplierList"></datalist>
+  </div>
+</div>
+<div class="field-row">
+  <div class="field">
+    <label>Expected date from supplier</label>
+    <input type="date" id="itemExpected">
+  </div>
+</div>
+<div class="field-row" style="margin-top:6px;">
+  <button class="btn btn-secondary" id="addItemBtn">+ Add item to this order</button>
+  <span class="sub" id="itemsCountLabel">No items added yet</span>
+</div>
+<div style="margin-top:8px;max-height:190px;overflow:auto;border:1px solid #e5e7eb;border-radius:8px;">
+  <table>
+    <thead>
+      <tr>
+        <th style="width:30%;">Item</th>
+        <th style="width:12%;">Qty</th>
+        <th style="width:18%;">Company</th>
+        <th style="width:18%;">Supplier</th>
+        <th style="width:22%;">Expected</th>
+      </tr>
+    </thead>
+    <tbody id="itemsPreviewBody"></tbody>
+  </table>
+</div>
+<div style="margin-top:10px;display:flex;justify-content:space-between;align-items:center;">
+  <button class="btn btn-primary" id="saveOrderBtn">Save order</button>
+  <button class="btn btn-secondary btn-sm" id="resetFormBtn">Reset form</button>
+</div>
+</section>
+
+<section class="card">
+<h2>Orders register</h2>
+
+<div class="today-box">
+  <div class="today-title">Today focus</div>
+  <div id="todayExpectedBox">
+    <div class="sub" style="margin-bottom:2px;">Expected from supplier today:</div>
+    <div id="todayExpectedList"></div>
+  </div>
+  <div id="todayPickupBox" style="margin-top:4px;">
+    <div class="sub" style="margin-bottom:2px;">Pending pickup (Informed &gt; 2 days):</div>
+    <div id="todayPickupList"></div>
+  </div>
+</div>
+
+<p class="sub">Search by name, mobile, order ID, item, company or supplier; track order status quickly.</p>
+<div class="search-row">
+  <input id="searchBox" type="text" placeholder="Search customer / mobile / order / item / company / supplier">
+  <button class="btn btn-secondary btn-sm" id="clearSearchBtn">Clear</button>
+  <button class="btn btn-primary btn-sm" id="exportCsvBtn">Export CSV</button>
+  <button class="btn btn-secondary btn-sm" id="exportPendingSupCsvBtn">Pending by supplier</button>
+</div>
+<div class="chip-row">
+  <span class="tag">Total: <span id="totalCount">0</span></span>
+  <span class="tag">Open: <span id="openCount">0</span></span>
+  <span class="tag">Partial: <span id="partialCount">0</span></span>
+  <span class="tag">Completed: <span id="doneCount">0</span></span>
+  <span class="tag">Failed: <span id="failedCount">0</span></span>
+</div>
+<div style="margin-top:6px;flex:1;overflow:auto;border:1px solid #e5e7eb;border-radius:8px;">
+  <table>
+    <thead>
+      <tr>
+        <th style="width:9%;">Order</th>
+        <th style="width:16%;">Customer</th>
+        <th style="width:12%;">Mobile</th>
+        <th style="width:10%;">Advance</th>
+        <th style="width:12%;">Status</th>
+        <th style="width:10%;">Items</th>
+        <th style="width:12%;">Last update</th>
+        <th style="width:12%;">Remark</th>
+        <th style="width:10%;">Refund</th>
+      </tr>
+    </thead>
+    <tbody id="ordersTableBody"></tbody>
+  </table>
+</div>
+</section>
+</main>
+
+<div class="modal-backdrop" id="modalBackdrop">
+<div class="modal">
+  <div class="modal-header">
+    <div>
+      <div class="chip-row">
+        <span class="pill pill-id" id="modalOrderId"></span>
+        <span class="pill" id="modalStatusPill"></span>
+      </div>
+      <div class="sub" id="modalDatesInfo"></div>
     </div>
-    
-    <script>
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('service-worker.js')
-                .then(reg => console.log('Service Worker registered'))
-                .catch(err => console.log('SW error:', err));
+    <button class="btn btn-secondary btn-sm" id="closeModalBtn">Close</button>
+  </div>
+  <div class="modal-body">
+    <div class="field-row">
+      <div class="field">
+        <label>Customer</label>
+        <div id="modalCustInfo" style="font-size:12px;color:#111827;"></div>
+      </div>
+      <div class="field">
+        <label>Contact</label>
+        <div id="modalContactInfo" style="font-size:12px;color:#111827;"></div>
+      </div>
+    </div>
+    <div class="field">
+      <label>Address</label>
+      <div id="modalAddress" style="font-size:12px;color:#374151;"></div>
+    </div>
+    <div class="field-row" style="margin-top:6px;">
+      <div class="field">
+        <label>Advance received</label>
+        <div id="modalAdvance" class="badge-small"></div>
+      </div>
+      <div class="field">
+        <label>Notes</label>
+        <div id="modalNotes" style="font-size:12px;color:#374151;"></div>
+      </div>
+    </div>
+
+    <h3 style="font-size:13px;font-weight:600;margin:10px 0 4px;">Items & tracking</h3>
+    <div style="border:1px solid #e5e7eb;border-radius:8px;overflow:auto;max-height:260px;">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:26%;">Item</th>
+            <th style="width:10%;">Qty</th>
+            <th style="width:16%;">Company</th>
+            <th style="width:16%;">Supplier</th>
+            <th style="width:10%;">Exp.</th>
+            <th style="width:10%;">Recvd</th>
+            <th style="width:12%;">Status</th>
+          </tr>
+        </thead>
+        <tbody id="modalItemsBody"></tbody>
+      </table>
+    </div>
+
+    <div class="photo-box">
+      <div class="field" style="flex:1;">
+        <label>Product photo (for recognition only)</label>
+        <input type="file" id="productPhotoInput" accept="image/*">
+        <p class="sub">This photo is only for quick view in this session; it is not stored in orders.</p>
+      </div>
+      <div>
+        <img id="productPhotoPreview" alt="No photo" style="display:none;">
+      </div>
+    </div>
+
+    <h3 style="font-size:13px;font-weight:600;margin:10px 0 4px;">Refund (for cancelled orders)</h3>
+    <div class="refund-section">
+      <div class="field-row">
+        <div class="field">
+          <label>Refund amount (₹)</label>
+          <input type="number" id="refundAmount" min="0" step="1" placeholder="Amount returned" disabled>
+        </div>
+        <div class="field">
+          <label>Refund date</label>
+          <input type="date" id="refundDate" disabled>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Refund mode</label>
+          <select id="refundMode" disabled>
+            <option value="">Select</option>
+            <option value="Cash">Cash</option>
+            <option value="UPI">UPI</option>
+            <option value="Card">Card</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Refund status</label>
+          <select id="refundStatus" disabled>
+            <option value="None">None</option>
+            <option value="Pending">Pending</option>
+            <option value="Partial">Partial</option>
+            <option value="Done">Done</option>
+          </select>
+        </div>
+      </div>
+      <p class="sub" id="refundHint">Refund fields are used only when order is cancelled (Failed) and advance was taken.</p>
+    </div>
+  </div>
+
+  <div class="modal-footer">
+    <div style="display:flex;gap:4px;flex-wrap:wrap;">
+      <button class="btn btn-secondary btn-sm" id="btnMarkAllOrdered">Mark all as Ordered</button>
+      <button class="btn btn-secondary btn-sm" id="btnMarkAllInformed">Mark all Received & informed</button>
+      <button class="btn btn-primary btn-sm" id="btnMarkAllCompleted">Mark all Completed</button>
+      <button class="btn btn-danger btn-sm" id="btnMarkAllFailed">Mark all Failed</button>
+      <button class="btn btn-secondary btn-sm" id="btnWhatsAppText">Copy WhatsApp text</button>
+    </div>
+    <div class="sub" id="modalHint"></div>
+  </div>
+</div>
+</div>
+
+<script>
+const STORAGE_KEY = "nms_special_orders_v1";
+const SUPPLIERS_KEY = "nms_suppliers_list_v1";
+const PROD_SUP_MAP_KEY = "nms_product_supplier_map_v1";
+
+function todayStr(){
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,"0");
+  const dd = String(d.getDate()).padStart(2,"0");
+  return y+"-"+m+"-"+dd;
+}
+
+// difference in days between two yyyy-mm-dd strings
+function diffDays(dateStr1, dateStr2){
+  if(!dateStr1 || !dateStr2) return 0;
+  const d1 = new Date(dateStr1);
+  const d2 = new Date(dateStr2);
+  const oneDay = 24*60*60*1000;
+  const ms = d2.getTime() - d1.getTime();
+  return Math.floor(ms / oneDay);
+}
+
+function loadOrders(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw? JSON.parse(raw):[];
+  }catch(e){
+    return [];
+  }
+}
+function saveOrders(list){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+}
+
+function loadSuppliers(){
+  try{
+    const raw = localStorage.getItem(SUPPLIERS_KEY);
+    return raw? JSON.parse(raw):[];
+  }catch(e){
+    return [];
+  }
+}
+function saveSuppliers(list){
+  localStorage.setItem(SUPPLIERS_KEY, JSON.stringify(list));
+}
+
+function loadProdSupplierMap(){
+  try{
+    const raw = localStorage.getItem(PROD_SUP_MAP_KEY);
+    return raw? JSON.parse(raw):{};
+  }catch(e){
+    return {};
+  }
+}
+function saveProdSupplierMap(map){
+  localStorage.setItem(PROD_SUP_MAP_KEY, JSON.stringify(map));
+}
+
+function newOrderId(list){
+  if(!list.length) return "NMS-001";
+  const last = list[list.length-1].orderId || "NMS-000";
+  const n = parseInt(last.split("-")[1] || "0",10)+1;
+  return "NMS-"+String(n).padStart(3,"0");
+}
+
+function computeOrderStatus(order){
+  let open=0,done=0,failed=0;
+  order.items.forEach(it=>{
+    if(it.status==="Completed") done++;
+    else if(it.status==="Failed") failed++;
+    else open++;
+  });
+  if(order.items.length===0) return "Open";
+  if(done+failed===order.items.length && done>0 && open===0) return "Completed";
+  if(failed===order.items.length && done===0 && open===0) return "Failed";
+  if(open===order.items.length && done===0 && failed===0) return "Open";
+  return "Partial";
+}
+
+function statusClassForBadge(st){
+  if(st==="Open") return "pill-status-open";
+  if(st==="Partial") return "pill-status-partial";
+  if(st==="Completed") return "pill-status-done";
+  if(st==="Failed") return "pill-status-failed";
+  return "pill-status-open";
+}
+
+let orders = loadOrders();
+let currentItems = [];
+let currentOrderIdForModal = null;
+let suppliers = loadSuppliers();
+let prodSupplierMap = loadProdSupplierMap();
+
+function refreshSupplierDatalist(){
+  const dl = document.getElementById("supplierList");
+  dl.innerHTML = "";
+  suppliers.slice().sort((a,b)=>a.localeCompare(b)).forEach(s=>{
+    if(!s) return;
+    const opt = document.createElement("option");
+    opt.value = s;
+    dl.appendChild(opt);
+  });
+}
+
+function registerSupplier(name){
+  const s = (name||"").trim();
+  if(!s) return;
+  if(!suppliers.includes(s)){
+    suppliers.push(s);
+    saveSuppliers(suppliers);
+    refreshSupplierDatalist();
+  }
+}
+
+function updateProdSupplierMapFromOrder(order){
+  if(!order.items) return;
+  order.items.forEach(it=>{
+    const itemKey = (it.name||"").trim().toLowerCase();
+    const sup = (it.supplier||"").trim();
+    if(itemKey && sup){
+      prodSupplierMap[itemKey] = sup;
+    }
+  });
+  saveProdSupplierMap(prodSupplierMap);
+}
+
+function autoFillSupplierForItemName(){
+  const name = document.getElementById("itemName").value.trim();
+  if(!name) return;
+  const key = name.toLowerCase();
+  const sup = prodSupplierMap[key];
+  if(sup){
+    const supInput = document.getElementById("itemSupplier");
+    if(!supInput.value.trim()){
+      supInput.value = sup;
+    }
+  }
+}
+
+function updateItemsPreview(){
+  const tbody = document.getElementById("itemsPreviewBody");
+  tbody.innerHTML = "";
+  currentItems.forEach((it)=>{
+    const tr = document.createElement("tr");
+    const qtyText = it.qty + " " + (it.qtyUnit || "");
+    tr.innerHTML = `
+      <td>${it.name}</td>
+      <td>${qtyText}</td>
+      <td>${it.company || "-"}</td>
+      <td>${it.supplier || "-"}</td>
+      <td>${it.expectedDate || "-"}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+  document.getElementById("itemsCountLabel").textContent =
+    currentItems.length ? currentItems.length+" item(s) added" : "No items added yet";
+}
+
+function renderStats(){
+  const total = orders.length;
+  let open=0,partial=0,done=0,failed=0;
+  orders.forEach(o=>{
+    const st = computeOrderStatus(o);
+    if(st==="Open") open++;
+    else if(st==="Partial") partial++;
+    else if(st==="Completed") done++;
+    else if(st==="Failed") failed++;
+  });
+  document.getElementById("totalCount").textContent = total;
+  document.getElementById("openCount").textContent = open;
+  document.getElementById("partialCount").textContent = partial;
+  document.getElementById("doneCount").textContent = done;
+  document.getElementById("failedCount").textContent = failed;
+}
+
+function remarkForOrder(o){
+  if(!o.items || !o.items.length) return "";
+  let maxStage = 0;
+  o.items.forEach(it=>{
+    if(it.status === "Ordered"){
+      if(maxStage < 1) maxStage = 1;
+    }else if(it.status === "Informed"){
+      if(maxStage < 2) maxStage = 2;
+    }else if(it.status === "Completed"){
+      if(maxStage < 3) maxStage = 3;
+    }else if(it.status === "Failed"){
+      if(maxStage < 4) maxStage = 4;
+    }
+  });
+  if(maxStage === 1) return "Ordered to supplier";
+  if(maxStage === 2) return "Received from supplier & called to customer";
+  if(maxStage === 3) return "Collected by customer";
+  if(maxStage === 4) return "Order failed / cancelled";
+  return "";
+}
+
+function buildWhatsAppText(order){
+  const name = order.customerName || "";
+  const advance = order.advance || 0;
+
+  const deliveredItems = order.items.filter(it => it.status === "Completed" || it.status === "Informed");
+  const failedItems = order.items.filter(it => it.status === "Failed");
+  const allFailed = deliveredItems.length === 0 && failedItems.length > 0;
+  const lines = [];
+
+  lines.push("Dear " + name + ",");
+  lines.push("");
+
+  if(allFailed){
+    lines.push("We are sorry, we could not arrange your requested special order item(s) at Nagaur Medical Store.");
+    lines.push("");
+    lines.push("Unavailable item(s):");
+    failedItems.forEach((it, idx)=>{
+      const qtyText = it.qty + " " + (it.qtyUnit || "");
+      lines.push((idx+1)+") "+it.name+" | Qty: "+qtyText);
+    });
+    if(advance > 0){
+      lines.push("");
+      lines.push("Kindly contact us regarding your advance payment.");
+    }
+  }else if(failedItems.length > 0){
+    lines.push("Your special order at Nagaur Medical Store is partly ready.");
+    lines.push("");
+    lines.push("Available item(s):");
+    deliveredItems.forEach((it, idx)=>{
+      const qtyText = it.qty + " " + (it.qtyUnit || "");
+      lines.push((idx+1)+") "+it.name+" | Qty: "+qtyText);
+    });
+    lines.push("");
+    lines.push("Unfortunately, we could not arrange the following item(s):");
+    failedItems.forEach((it, idx)=>{
+      const qtyText = it.qty + " " + (it.qtyUnit || "");
+      lines.push((idx+1)+") "+it.name+" | Qty: "+qtyText);
+    });
+    lines.push("");
+    lines.push("We are sorry for the inconvenience caused.");
+    lines.push("Kindly visit the shop to collect the available item(s).");
+  }else{
+    lines.push("Your special order has arrived at Nagaur Medical Store.");
+    lines.push("Your order is now ready for collection.");
+    lines.push("");
+    lines.push("Order details:");
+    order.items.forEach((it, idx) => {
+      const qtyText = it.qty + " " + (it.qtyUnit || "");
+      lines.push((idx+1) + ") " + it.name + " | Qty: " + qtyText);
+    });
+  }
+
+  if (advance > 0 && !allFailed){
+    lines.push("");
+    lines.push("Advance received: ₹" + advance + ".");
+  }
+
+  lines.push("");
+  lines.push("If already collected, please ignore this message.");
+  lines.push("");
+  lines.push("Regards,");
+  lines.push("Nagaur Medical Store");
+
+  return lines.join("\n");
+}
+
+function ordersToCsv(ordersList){
+  const rows = [];
+  rows.push([
+    "OrderID","Date","CustomerName","Mobile","Address",
+    "Advance","Notes","OverallStatus",
+    "RefundAmount","RefundDate","RefundMode","RefundStatus",
+    "ItemIndex","ItemName","Qty","QtyUnit","Company","Supplier",
+    "ExpectedDate","ReceivedDate","ItemStatus",
+    "CreatedAt","LastUpdate"
+  ]);
+  ordersList.forEach(o=>{
+    const overall = computeOrderStatus(o);
+    if(!o.items || !o.items.length){
+      rows.push([
+        o.orderId,o.date||"",o.customerName||"",o.mobile||"",o.address||"",
+        o.advance||0,o.notes||"",overall,
+        o.refundAmount||0,o.refundDate||"",o.refundMode||"",o.refundStatus||"None",
+        "","","","","",
+        "","","","",
+        o.createdAt||"",o.lastUpdate||""
+      ]);
+    }else{
+      o.items.forEach((it,idx)=>{
+        rows.push([
+          o.orderId,o.date||"",o.customerName||"",o.mobile||"",o.address||"",
+          o.advance||0,o.notes||"",overall,
+          o.refundAmount||0,o.refundDate||"",o.refundMode||"",o.refundStatus||"None",
+          idx+1,it.name||"",it.qty||"",it.qtyUnit||"",it.company||"",it.supplier||"",
+          it.expectedDate||"",it.receivedDate||"",it.status||"",
+          o.createdAt||"",o.lastUpdate||""
+        ]);
+      });
+    }
+  });
+  return rows.map(r=>r.map(v=>{
+    const s = String(v==null? "":v);
+    if(s.includes(",") || s.includes("\"") || s.includes("\n")){
+      return "\"" + s.replace(/"/g,'""') + "\"";
+    }
+    return s;
+  }).join(",")).join("\n");
+}
+
+function pendingSupplierCsv(ordersList){
+  const rows = [];
+  rows.push([
+    "Supplier","Company","ItemName","Qty","QtyUnit",
+    "Customer","Mobile","OrderID","ExpectedDate","ItemStatus"
+  ]);
+  const pendingLines = [];
+  ordersList.forEach(o=>{
+    if(!o.items) return;
+    o.items.forEach(it=>{
+      if(it.status==="Completed" || it.status==="Failed") return;
+      if(!it.supplier) return;
+      pendingLines.push({
+        supplier: it.supplier,
+        company: it.company || "",
+        itemName: it.name || "",
+        qty: it.qty || "",
+        qtyUnit: it.qtyUnit || "",
+        customer: o.customerName || "",
+        mobile: o.mobile || "",
+        orderId: o.orderId || "",
+        expected: it.expectedDate || "",
+        status: it.status || ""
+      });
+    });
+  });
+  if(!pendingLines.length){
+    return "";
+  }
+  pendingLines.sort((a,b)=>{
+    const s = a.supplier.localeCompare(b.supplier);
+    if(s!==0) return s;
+    const c = (a.company||"").localeCompare(b.company||"");
+    if(c!==0) return c;
+    return (a.itemName||"").localeCompare(b.itemName||"");
+  });
+  pendingLines.forEach(line=>{
+    rows.push([
+      line.supplier,line.company,line.itemName,line.qty,line.qtyUnit,
+      line.customer,line.mobile,line.orderId,line.expected,line.status
+    ]);
+  });
+  return rows.map(r=>r.map(v=>{
+    const s = String(v==null? "":v);
+    if(s.includes(",") || s.includes("\"") || s.includes("\n")){
+      return "\"" + s.replace(/"/g,'""') + "\"";
+    }
+    return s;
+  }).join(",")).join("\n");
+}
+
+function downloadCsv(filename, csvText){
+  const blob = new Blob([csvText], {type:"text/csv;charset=utf-8;"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function renderTodayFocus(){
+  const today = todayStr();
+  const expectedBox = document.getElementById("todayExpectedList");
+  const pickupBox = document.getElementById("todayPickupList");
+  expectedBox.innerHTML = "";
+  pickupBox.innerHTML = "";
+
+  const EXPECTED = [];
+  const PICKUP = [];
+  const pickupDays = 2;
+
+  orders.forEach(o=>{
+    if(!o.items) return;
+    const overall = computeOrderStatus(o);
+    o.items.forEach(it=>{
+      if(it.expectedDate === today && it.status !== "Completed" && it.status !== "Failed"){
+        EXPECTED.push({
+          orderId: o.orderId,
+          customer: o.customerName || "",
+          item: it.name || "",
+          qty: it.qty + " " + (it.qtyUnit || ""),
+          supplier: it.supplier || ""
+        });
+      }
+      if(it.status === "Informed" && it.receivedDate){
+        const days = diffDays(it.receivedDate, today);
+        if(days > pickupDays && overall !== "Completed" && overall !== "Failed"){
+          PICKUP.push({
+            orderId: o.orderId,
+            customer: o.customerName || "",
+            item: it.name || "",
+            qty: it.qty + " " + (it.qtyUnit || ""),
+            days: days
+          });
         }
-    </script>
+      }
+    });
+  });
+
+  if(!EXPECTED.length){
+    expectedBox.innerHTML = '<div class="sub">No items expected today.</div>';
+  }else{
+    EXPECTED.forEach(x=>{
+      const div = document.createElement("div");
+      div.className = "today-row";
+      div.innerHTML = `
+        <div class="today-left">
+          <span class="today-pill">${x.orderId}</span>
+          ${x.customer} – ${x.item} (${x.qty})
+        </div>
+        <div class="today-right">
+          ${x.supplier || "-"}
+        </div>
+      `;
+      div.addEventListener("click", ()=>openModal(x.orderId));
+      expectedBox.appendChild(div);
+    });
+  }
+
+  if(!PICKUP.length){
+    pickupBox.innerHTML = '<div class="sub">No pending pickups older than 2 days.</div>';
+  }else{
+    PICKUP.forEach(x=>{
+      const div = document.createElement("div");
+      div.className = "today-row";
+      div.innerHTML = `
+        <div class="today-left">
+          <span class="today-pill">${x.orderId}</span>
+          ${x.customer} – ${x.item} (${x.qty})
+        </div>
+        <div class="today-right">
+          ${x.days} day(s)
+        </div>
+      `;
+      div.addEventListener("click", ()=>openModal(x.orderId));
+      pickupBox.appendChild(div);
+    });
+  }
+}
+
+function renderTable(){
+  const body = document.getElementById("ordersTableBody");
+  const q = document.getElementById("searchBox").value.trim().toLowerCase();
+  body.innerHTML = "";
+
+  const filtered = orders.filter(o=>{
+    if(!q) return true;
+    const fields = [
+      o.orderId,o.customerName,o.mobile,o.address,(o.notes||""),(o.advance||""),
+      o.refundAmount,o.refundDate,o.refundMode,o.refundStatus
+    ];
+    o.items.forEach(it=>{
+      fields.push(it.name,it.company,it.supplier,it.qtyUnit);
+    });
+    return fields.some(f=> String(f||"").toLowerCase().includes(q));
+  });
+
+  filtered.slice().reverse().forEach(o=>{
+    const tr = document.createElement("tr");
+    const st = computeOrderStatus(o);
+    const lastUpdate = o.lastUpdate || o.createdAt || "";
+    const remark = remarkForOrder(o);
+
+    const hasFailed = o.items.some(it => it.status==="Failed");
+    let refundLabel = "-";
+    if ((o.advance || 0) > 0 && hasFailed){
+      if (o.refundStatus === "Done"){
+        refundLabel = "Done";
+      } else if (o.refundStatus === "Partial"){
+        refundLabel = "Partial";
+      } else if (o.refundStatus === "Pending"){
+        refundLabel = "Pending";
+      } else {
+        refundLabel = "Not started";
+      }
+    }
+
+    tr.innerHTML = `
+      <td><span class="clickable" data-open-modal="${o.orderId}">${o.orderId}</span></td>
+      <td>${o.customerName}</td>
+      <td>${o.mobile}</td>
+      <td>₹${o.advance || 0}</td>
+      <td><span class="status-badge ${statusClassForBadge(st)}">${st}</span></td>
+      <td>${o.items.length}</td>
+      <td>${lastUpdate ? lastUpdate.split("T")[0] : "-"}</td>
+      <td>${remark || "-"}</td>
+      <td>${refundLabel}</td>
+    `;
+    body.appendChild(tr);
+  });
+  renderStats();
+}
+
+function autoRefundStatus(order){
+  const advance = order.advance || 0;
+  const amt = order.refundAmount || 0;
+  const hasFailed = order.items.some(it => it.status==="Failed");
+  if(advance <= 0 || !hasFailed){
+    order.refundStatus = "None";
+    order.refundAmount = 0;
+    order.refundDate = "";
+    order.refundMode = "";
+    return;
+  }
+  if(amt <= 0){
+    order.refundStatus = "Pending";
+  }else if(amt > 0 && amt < advance){
+    order.refundStatus = "Partial";
+  }else if(amt >= advance){
+    order.refundStatus = "Done";
+  }
+}
+
+function openModal(orderId){
+  const o = orders.find(x=>x.orderId===orderId);
+  if(!o) return;
+  currentOrderIdForModal = orderId;
+
+  const photoInput = document.getElementById("productPhotoInput");
+  const photoImg = document.getElementById("productPhotoPreview");
+  photoInput.value = "";
+  photoImg.style.display = "none";
+  photoImg.src = "";
+
+  const st = computeOrderStatus(o);
+  document.getElementById("modalOrderId").textContent = o.orderId;
+  const pill = document.getElementById("modalStatusPill");
+  pill.textContent = st;
+  pill.className = "pill "+statusClassForBadge(st);
+
+  const created = o.createdAt ? o.createdAt.split("T")[0] : (o.date || "-");
+  const last = o.lastUpdate ? o.lastUpdate.split("T")[0] : created;
+  document.getElementById("modalDatesInfo").textContent =
+    "Order date: "+(o.date || created)+" • Last update: "+(last || "-");
+
+  document.getElementById("modalCustInfo").textContent = o.customerName || "-";
+  document.getElementById("modalContactInfo").textContent = o.mobile || "-";
+  document.getElementById("modalAddress").textContent = o.address || "-";
+  document.getElementById("modalAdvance").textContent = "Advance: ₹"+(o.advance || 0);
+  document.getElementById("modalNotes").textContent = o.notes || "-";
+
+  const hasAdvance = (o.advance || 0) > 0;
+  const hasFailed = o.items.some(it => it.status==="Failed");
+  const refundAmountInput = document.getElementById("refundAmount");
+  const refundDateInput = document.getElementById("refundDate");
+  const refundModeInput = document.getElementById("refundMode");
+  const refundStatusInput = document.getElementById("refundStatus");
+  const refundHint = document.getElementById("refundHint");
+
+  refundAmountInput.value = o.refundAmount || "";
+  refundDateInput.value = o.refundDate || "";
+  refundModeInput.value = o.refundMode || "";
+  refundStatusInput.value = o.refundStatus || "None";
+
+  const overallStatus = st;
+  const canEditRefund = (overallStatus === "Failed" || overallStatus === "Partial") && hasAdvance && hasFailed && o.refundStatus !== "Done";
+
+  refundAmountInput.disabled = !canEditRefund;
+  refundDateInput.disabled = !canEditRefund;
+  refundModeInput.disabled = !canEditRefund;
+  refundStatusInput.disabled = true;
+
+  if(!hasAdvance){
+    refundHint.textContent = "No advance taken for this order, refund not applicable.";
+  } else if(!hasFailed){
+    refundHint.textContent = "All items collected or in process; refund not applicable.";
+  } else if(o.refundStatus === "Done"){
+    refundHint.textContent = "Refund marked Done. Fields are locked.";
+  } else {
+    refundHint.textContent = "Order has failed item(s) with advance. Enter refund amount/date/mode; status will set automatically.";
+  }
+
+  const tbody = document.getElementById("modalItemsBody");
+  tbody.innerHTML = "";
+  const locked = (st==="Completed" || st==="Failed");
+  o.items.forEach((it,idx)=>{
+    const tr = document.createElement("tr");
+    const recv = it.receivedDate || "";
+    const qtyText = it.qty + " " + (it.qtyUnit || "");
+    let statusCell = "";
+    if(locked){
+      statusCell = `<div class="badge-small">${it.status}</div>`;
+    }else{
+      statusCell = `
+        <div class="item-status-buttons" data-idx="${idx}">
+          <button class="mini-btn" data-act="Ordered">Ord</button>
+          <button class="mini-btn" data-act="Informed">Recv+Inf</button>
+          <button class="mini-btn" data-act="Completed">Done</button>
+          <button class="mini-btn" data-act="Failed">Fail</button>
+        </div>
+        <div class="badge-small" style="margin-top:2px;">${it.status}</div>
+      `;
+    }
+    tr.innerHTML = `
+      <td>${it.name}</td>
+      <td>${qtyText}</td>
+      <td>${it.company || "-"}</td>
+      <td>${it.supplier || "-"}</td>
+      <td>${it.expectedDate || "-"}</td>
+      <td>${recv || "-"}</td>
+      <td>${statusCell}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  const hint = document.getElementById("modalHint");
+  if(locked){
+    hint.textContent = "Order is locked because it is Completed or Failed. Status cannot be changed.";
+  }else{
+    hint.textContent = "Update each item status or use quick buttons below to set all together.";
+  }
+
+  document.getElementById("modalBackdrop").style.display = "flex";
+}
+
+function closeModal(){
+  if(currentOrderIdForModal){
+    const o = orders.find(x=>x.orderId===currentOrderIdForModal);
+    if(o){
+      const refundAmountInput = document.getElementById("refundAmount");
+      const refundDateInput = document.getElementById("refundDate");
+      const refundModeInput = document.getElementById("refundMode");
+
+      if(!refundAmountInput.disabled){
+        const advance = o.advance || 0;
+        const entered = parseFloat(refundAmountInput.value || "0") || 0;
+        if(entered > advance){
+          alert("Refund amount cannot be more than advance amount (₹"+advance+"). Please correct it.");
+          return;
+        }
+        o.refundAmount = entered;
+        o.refundDate = refundDateInput.value || "";
+        o.refundMode = refundModeInput.value || "";
+      }
+      autoRefundStatus(o);
+
+      stampUpdate(o);
+      saveOrders(orders);
+      renderTable();
+      renderTodayFocus();
+    }
+  }
+  document.getElementById("modalBackdrop").style.display = "none";
+  currentOrderIdForModal = null;
+}
+
+function stampUpdate(order){
+  order.lastUpdate = new Date().toISOString();
+}
+
+document.addEventListener("DOMContentLoaded", ()=>{
+  document.getElementById("orderDate").value = todayStr();
+  document.getElementById("orderIdLabel").textContent = newOrderId(orders);
+  refreshSupplierDatalist();
+  updateItemsPreview();
+  renderTable();
+  renderTodayFocus();
+
+  document.getElementById("itemName").addEventListener("blur", autoFillSupplierForItemName);
+
+  document.getElementById("addItemBtn").addEventListener("click", ()=>{
+    const name = document.getElementById("itemName").value.trim();
+    const qty = parseInt(document.getElementById("itemQty").value,10)||1;
+    const qtyUnit = document.getElementById("itemQtyUnit").value || "Strip";
+    const company = document.getElementById("itemCompany").value.trim();
+    const supplier = document.getElementById("itemSupplier").value.trim();
+    const expected = document.getElementById("itemExpected").value;
+    if(!name){
+      alert("Enter item/cream name.");
+      return;
+    }
+    currentItems.push({
+      name, qty, qtyUnit, company, supplier,
+      expectedDate: expected || "",
+      receivedDate: "",
+      status:"Ordered"
+    });
+    registerSupplier(supplier);
+    const key = name.trim().toLowerCase();
+    if(key && supplier){
+      prodSupplierMap[key] = supplier;
+      saveProdSupplierMap(prodSupplierMap);
+    }
+
+    document.getElementById("itemName").value = "";
+    document.getElementById("itemQty").value = "1";
+    document.getElementById("itemQtyUnit").value = "Strip";
+    document.getElementById("itemCompany").value = "";
+    document.getElementById("itemSupplier").value = "";
+    document.getElementById("itemExpected").value = "";
+    updateItemsPreview();
+  });
+
+  document.getElementById("saveOrderBtn").addEventListener("click", ()=>{
+    const date = document.getElementById("orderDate").value || todayStr();
+    const name = document.getElementById("custName").value.trim();
+    const mobile = document.getElementById("custMobile").value.trim();
+    const address = document.getElementById("custAddress").value.trim();
+    const advance = parseFloat(document.getElementById("advance").value || "0") || 0;
+    const notes = document.getElementById("notes").value.trim();
+
+    if(!name || !mobile){
+      alert("Customer name and mobile are required.");
+      return;
+    }
+    if(currentItems.length===0){
+      alert("Add at least one item for this order.");
+      return;
+    }
+
+    const orderId = newOrderId(orders);
+    const nowIso = new Date().toISOString();
+    const order = {
+      orderId,
+      date,
+      customerName:name,
+      mobile,
+      address,
+      advance,
+      notes,
+      items: currentItems.map(it=>({...it})),
+      createdAt: nowIso,
+      lastUpdate: nowIso,
+      refundAmount: 0,
+      refundDate: "",
+      refundMode: "",
+      refundStatus: "None"
+    };
+    orders.push(order);
+    saveOrders(orders);
+
+    currentItems.forEach(it=>registerSupplier(it.supplier));
+    updateProdSupplierMapFromOrder(order);
+
+    currentItems = [];
+    updateItemsPreview();
+    document.getElementById("custName").value = "";
+    document.getElementById("custMobile").value = "";
+    document.getElementById("custAddress").value = "";
+    document.getElementById("advance").value = "";
+    document.getElementById("notes").value = "";
+    document.getElementById("itemName").value = "";
+    document.getElementById("itemQty").value = "1";
+    document.getElementById("itemQtyUnit").value = "Strip";
+    document.getElementById("itemCompany").value = "";
+    document.getElementById("itemSupplier").value = "";
+    document.getElementById("itemExpected").value = "";
+    document.getElementById("orderDate").value = todayStr();
+    document.getElementById("orderIdLabel").textContent = newOrderId(orders);
+    renderTable();
+    renderTodayFocus();
+    alert("Order saved: "+orderId);
+  });
+
+  document.getElementById("resetFormBtn").addEventListener("click", ()=>{
+    currentItems = [];
+    updateItemsPreview();
+    document.getElementById("custName").value = "";
+    document.getElementById("custMobile").value = "";
+    document.getElementById("custAddress").value = "";
+    document.getElementById("advance").value = "";
+    document.getElementById("notes").value = "";
+    document.getElementById("itemName").value = "";
+    document.getElementById("itemQty").value = "1";
+    document.getElementById("itemQtyUnit").value = "Strip";
+    document.getElementById("itemCompany").value = "";
+    document.getElementById("itemSupplier").value = "";
+    document.getElementById("itemExpected").value = "";
+    document.getElementById("orderDate").value = todayStr();
+  });
+
+  document.getElementById("searchBox").addEventListener("input", renderTable);
+  document.getElementById("clearSearchBtn").addEventListener("click", ()=>{
+    document.getElementById("searchBox").value = "";
+    renderTable();
+  });
+
+  document.getElementById("ordersTableBody").addEventListener("click", e=>{
+    const id = e.target.getAttribute("data-open-modal");
+    if(id){
+      openModal(id);
+      return;
+    }
+  });
+
+  document.getElementById("closeModalBtn").addEventListener("click", closeModal);
+  document.getElementById("modalBackdrop").addEventListener("click", e=>{
+    if(e.target.id==="modalBackdrop") closeModal();
+  });
+
+  document.getElementById("modalItemsBody").addEventListener("click", e=>{
+    const btn = e.target;
+    const act = btn.getAttribute("data-act");
+    if(!act) return;
+
+    const rowDiv = btn.closest(".item-status-buttons");
+    if(!rowDiv) return;
+    const idx = parseInt(rowDiv.getAttribute("data-idx"),10);
+    const o = orders.find(x=>x.orderId===currentOrderIdForModal);
+    if(!o) return;
+
+    const st = computeOrderStatus(o);
+    if(st==="Completed" || st==="Failed"){
+      alert("Order locked. Cannot change status.");
+      return;
+    }
+
+    const item = o.items[idx];
+    if(!item) return;
+    item.status = (act==="Ordered")? "Ordered":
+                  (act==="Informed")? "Informed":
+                  (act==="Completed")? "Completed":"Failed";
+
+    if(act==="Informed" && !item.receivedDate){
+      item.receivedDate = todayStr();
+    }
+
+    stampUpdate(o);
+    saveOrders(orders);
+    renderTable();
+    renderTodayFocus();
+    openModal(o.orderId);
+  });
+
+  function bulkUpdate(act){
+    const o = orders.find(x=>x.orderId===currentOrderIdForModal);
+    if(!o) return;
+    const st = computeOrderStatus(o);
+    if(st==="Completed" || st==="Failed"){
+      alert("Order locked. Cannot change status.");
+      return;
+    }
+    o.items.forEach(it=>{
+      it.status = act;
+      if(act==="Informed" && !it.receivedDate){
+        it.receivedDate = todayStr();
+      }
+    });
+    stampUpdate(o);
+    saveOrders(orders);
+    renderTable();
+    renderTodayFocus();
+    openModal(o.orderId);
+  }
+
+  document.getElementById("btnMarkAllOrdered").addEventListener("click", ()=>bulkUpdate("Ordered"));
+  document.getElementById("btnMarkAllInformed").addEventListener("click", ()=>bulkUpdate("Informed"));
+  document.getElementById("btnMarkAllCompleted").addEventListener("click", ()=>bulkUpdate("Completed"));
+  document.getElementById("btnMarkAllFailed").addEventListener("click", ()=>bulkUpdate("Failed"));
+
+  document.getElementById("btnWhatsAppText").addEventListener("click", ()=>{
+    const o = orders.find(x=>x.orderId===currentOrderIdForModal);
+    if(!o){
+      alert("No order loaded.");
+      return;
+    }
+    const txt = buildWhatsAppText(o);
+    navigator.clipboard.writeText(txt).then(()=>{
+      alert("WhatsApp message copied. Paste in WhatsApp chat.");
+    }).catch(()=>{
+      alert("Unable to copy automatically. You can select and copy manually from console.");
+      console.log(txt);
+    });
+  });
+
+  document.getElementById("exportCsvBtn").addEventListener("click", ()=>{
+    if(!orders.length){
+      alert("No orders to export.");
+      return;
+    }
+    const csv = ordersToCsv(orders);
+    const today = todayStr();
+    downloadCsv("NMS_special_orders_"+today+".csv", csv);
+  });
+
+  document.getElementById("exportPendingSupCsvBtn").addEventListener("click", ()=>{
+    if(!orders.length){
+      alert("No orders available.");
+      return;
+    }
+    const csv = pendingSupplierCsv(orders);
+    if(!csv){
+      alert("No pending items with supplier to export.");
+      return;
+    }
+    const today = todayStr();
+    downloadCsv("NMS_pending_supplier_orders_"+today+".csv", csv);
+  });
+
+  document.getElementById("productPhotoInput").addEventListener("change", (e)=>{
+    const file = e.target.files && e.target.files[0];
+    const img = document.getElementById("productPhotoPreview");
+    if(!file){
+      img.style.display = "none";
+      img.src = "";
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = function(ev){
+      img.src = ev.target.result;
+      img.style.display = "block";
+    };
+    reader.readAsDataURL(file);
+  });
+});
+</script>
 </body>
 </html>
